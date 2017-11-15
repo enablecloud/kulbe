@@ -1,0 +1,59 @@
+@startuml
+
+' color to use
+' #FFB05A
+' #FFB05A
+' #D5E821
+' #31FFB4
+' #514BEF
+skinparam handwritten true
+
+skinparam interface {
+  backgroundColor RosyBrown
+  borderColor orange
+}
+
+skinparam object {
+	ArrowColor DeepSkyBlue
+	ActorBorderColor DeepSkyBlue
+    BackgroundColor<<Apache>> Red
+    BorderColor<<Apache>> #FF6655
+    FontName Courier
+    BackgroundColor <<Blue>> DeepSkyBlue
+    BorderColor black
+    BackgroundColor gold
+    ArrowFontName Impact
+    ArrowColor #996655
+    ArrowFontColor #777777
+
+}
+
+header
+<font color=red>Warning:</font>
+Draft
+endheader
+center footer Controller
+
+actor Admin
+control ApplicationController
+== Create Application ==
+Admin -> Kubernetes: Create Application
+Kubernetes -> ApplicationController: Detect new Application
+ApplicationController -> Kubernetes : Create Namespace
+ApplicationController -> Kubernetes : Deploy hooks (external service)
+loop on Components
+    ApplicationController -> helm : Create Component on namespace
+end
+helm -> Kubernetes : Deploy pod, service ,...
+ApplicationController-> Kubernetes: Update Application status
+loop on Service / Ingress
+Kubernetes -> ApplicationController : Get route information
+ApplicationController-> Kubernetes: Update Application status with route
+end
+loop on Deployement
+Kubernetes -> ApplicationController : Check status
+ApplicationController-> Kubernetes: Update Application status with pod status
+end
+== Check Application status ==
+Admin -> Kubernetes: Consult Application Status (including service url)
+@enduml

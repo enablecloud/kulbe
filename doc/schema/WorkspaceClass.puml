@@ -1,0 +1,73 @@
+@startuml
+
+' color to use
+' #FFB05A
+' #FFB05A
+' #D5E821
+' #31FFB4
+' #514BEF
+skinparam handwritten true
+
+skinparam interface {
+  backgroundColor RosyBrown
+  borderColor orange
+}
+
+skinparam class {
+	ArrowColor DeepSkyBlue
+	ActorBorderColor DeepSkyBlue
+    BackgroundColor<<Apache>> Red
+    BorderColor<<Apache>> #FF6655
+    FontName Courier
+    BackgroundColor <<Blue>> DeepSkyBlue
+    BorderColor black
+    BackgroundColor gold
+    ArrowFontName Impact
+    ArrowColor #996655
+    ArrowFontColor #777777
+
+}
+
+header
+<font color=red>Warning:</font>
+Draft
+endheader
+center footer Tenant,User,Workspace,Application and Component
+
+
+package "System" <<Namespace>>#DDFFDD {
+  class Workspace <<CustomResourceDefinition>>{
+    String tenant
+    String namespace
+    String user
+    Application []applications
+  }
+  class Application <<CustomResourceDefinition>>{
+      String name
+      String namespace
+      Services services[]
+    }
+  class Service <<CustomResourceDefinition>>{
+      String name
+      String namespace
+      String helmname
+      String version
+      Service links[]
+  }
+  Workspace *-- Application
+  Application *-- Service
+}
+package "Tenant" <<Namespace>>#DDDDDD {
+    class Workspace-01 <<Workspace>>
+    class Workspace-02 <<Workspace>>
+}
+package "Tenant" <<Namespace>>#DDDDDD {
+    class Workspace-01 <<Workspace>>
+    class Workspace-02 <<Workspace>>
+}
+
+
+
+
+
+@enduml
