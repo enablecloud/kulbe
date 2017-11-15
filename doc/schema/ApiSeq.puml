@@ -64,7 +64,7 @@ ApiManagement -> Kubernetes : Update the Application Object
 ApiManagement <- Kubernetes
 ApiManagement -> Kubernetes : Get current of the Application
 ApiManagement <- Kubernetes
-ApiManagement -> Admin : Return startup status
+ApiManagement -> Admin : Return current status
 == Package an existing Application (large: need data from services) ==
 Admin -> ApiManagement : Package an Application
 ApiManagement -> Kubernetes : Get the Application Object
