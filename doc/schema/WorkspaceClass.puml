@@ -36,35 +36,27 @@ center footer Tenant,User,Workspace,Application and Component
 
 
 package "System" <<Namespace>>#DDFFDD {
-  class Workspace <<CustomResourceDefinition>>{
+  object Workspace <<CustomResourceDefinition>>{
     String tenant
     String namespace
     String user
     Application []applications
   }
-  class Application <<CustomResourceDefinition>>{
+  object Application <<CustomResourceDefinition>>{
       String name
       String namespace
-      Services services[]
+      Component components[]
     }
-  class Service <<CustomResourceDefinition>>{
+  object Component <<CustomResourceDefinition>>{
       String name
       String namespace
       String helmname
       String version
-      Service links[]
   }
   Workspace *-- Application
-  Application *-- Service
+  Application *-- Component
 }
-package "Tenant" <<Namespace>>#DDDDDD {
-    class Workspace-01 <<Workspace>>
-    class Workspace-02 <<Workspace>>
-}
-package "Tenant" <<Namespace>>#DDDDDD {
-    class Workspace-01 <<Workspace>>
-    class Workspace-02 <<Workspace>>
-}
+
 
 
 

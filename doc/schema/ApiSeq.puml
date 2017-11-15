@@ -35,25 +35,43 @@ endheader
 center footer Controller
 
 actor Admin
-control ApplicationController
+
+== List Services ==
+Admin -> ApiManagement : List Services
+ApiManagement -> HelmRepo : Get and filter on keywords
+note right
+    Filter on workspace, namespace,...
+end note
+ApiManagement -> Admin : Formated and Filtered list
+
 == Create Application ==
-Admin -> Kubernetes: Create Application
-Kubernetes -> ApplicationController: Detect new Application
-ApplicationController -> Kubernetes : Create Namespace
-ApplicationController -> Kubernetes : Deploy hooks (external service)
-loop on Components
-    ApplicationController -> helm : Create Component on namespace
-end
-helm -> Kubernetes : Deploy pod, service ,...
-ApplicationController-> Kubernetes: Update Application status
-loop on Service / Ingress
-Kubernetes -> ApplicationController : Get route information
-ApplicationController-> Kubernetes: Update Application status with route
-end
-loop on Deployement
-Kubernetes -> ApplicationController : Check status
-ApplicationController-> Kubernetes: Update Application status with pod status
-end
-== Check Application status ==
-Admin -> Kubernetes: Consult Application Status (including service url)
+Admin -> ApiManagement : Create application
+ApiManagement -> Kubernetes : Create Application Object
+ApiManagement <- Kubernetes
+ApiManagement -> Kubernetes : Get Status of the Application
+ApiManagement <- Kubernetes
+ApiManagement -> Admin : Return startup status
+== Get status and available services(urls) of an Application ==
+Admin -> ApiManagement : Get Application Status
+ApiManagement -> Kubernetes : Get the Application Object and get status
+ApiManagement <- Kubernetes
+ApiManagement -> Admin : Return Current status
+== Add service to an application ==
+Admin -> ApiManagement : Add a service to an Application
+ApiManagement -> Kubernetes : Get the Application Object
+ApiManagement <- Kubernetes
+ApiManagement -> Kubernetes : Update the Application Object
+ApiManagement <- Kubernetes
+ApiManagement -> Kubernetes : Get current of the Application
+ApiManagement <- Kubernetes
+ApiManagement -> Admin : Return startup status
+== Package an existing Application (large: need data from services) ==
+Admin -> ApiManagement : Package an Application
+ApiManagement -> Kubernetes : Get the Application Object
+ApiManagement <- Kubernetes
+ApiManagement -> Kubernetes : Annotate the Application Object with Packaging
+ApiManagement <- Kubernetes
+ApiManagement -> Kubernetes : Get Status of the Application
+ApiManagement <- Kubernetes
+ApiManagement -> Admin : Return current status
 @enduml

@@ -13,7 +13,7 @@ skinparam interface {
   borderColor orange
 }
 
-skinparam class {
+skinparam object {
 	ArrowColor DeepSkyBlue
 	ActorBorderColor DeepSkyBlue
     BackgroundColor<<Apache>> Red
@@ -34,32 +34,100 @@ Draft
 endheader
 center footer Tenant,User,Workspace,Application and Component
 
-
-package "System" <<Namespace>>#DDFFDD {
-  class Workspace <<CustomResourceDefinition>>{
-    String tenant
-    String namespace
-    String user
-    Application []applications
-  }
-  class Application <<CustomResourceDefinition>>{
-      String name
-      String namespace
-      Services services[]
+namespace tenant <<Namespace>>#DDDDDD {
+    object workspace01 <<Workspace>> {
+        name = "workspace_01"
+        applications[]
     }
-  class Service <<CustomResourceDefinition>>{
-      String name
-      String namespace
-      String helmname
-      String version
-  }
-  Workspace *-- Application
-  Application *-- Service
 }
 
+namespace workspace_01 <<Namespace>>#DDDDDD {
+    object application01 <<Application>> {
+        name = "application01"
+        namespace = "application01-44557"
+        components = [backend2,frontend2]
+
+    }
+    object application02 <<Application>> {
+            name = "application02"
+            namespace = "application02-45356"
+            components = [backend1,frontend1]
+    }
+
+    object backend2 <<Component>> {
+            name = "backend"
+            namespace = "application01_44557"
+            helmname = "super/backend"
+            version = "1.0.0"
+    }
+    object backend1 <<Component>> {
+            name = "backend"
+            namespace = "application02_45356"
+            helmname = "super/backend"
+            version = "1.0.0"
+    }
+    object frontend2 <<Component>> {
+            name = "frontend"
+            namespace = "application01_44557"
+            helmname = "super/frontend"
+            version = "1.1.0"
+    }
+    object frontend1 <<Component>> {
+            name = "frontend"
+            namespace = "application02_45356"
+            helmname = "super/frontend"
+            version = "1.2.0"
+    }
+
+}
+workspace01 --> application01
+workspace01 --> application02
+application01 --> backend2
+application01 --> frontend2
+application02 --> backend1
+application02 --> frontend1
 
 
+namespace application01_44557 <<Namespace>>#FFB05A {
+    object serviceFront2 <<Service>> {
+        name = front
+    }
+    object podFront2_1 <<Pod>>
+    object podFront2_2 <<Pod>>
+    object serviceBackend2 <<Service>> {
+        name=backend
+    }
+    object podBackend2_1 <<Pod>>
+    object podBackend2_2 <<Pod>>
 
+}
+frontend2-.->serviceFront2
+serviceFront2-->podFront2_1
+serviceFront2-->podFront2_2
+podFront2_1-->serviceBackend2
+podFront2_2-->serviceBackend2
+backend2-.->serviceBackend2
+serviceBackend2-->podBackend2_1
+serviceBackend2-->podBackend2_2
+namespace application02_45356 <<Namespace>>#FFB05A {
+    object serviceFront1 <<Service>> {
+        name = front
+    }
+    object podFront1_1 <<Pod>>
+    object podFront1_2 <<Pod>>
+    object serviceBackend1 <<Service>> {
+        name=backend
+    }
+    object podBackend1_1 <<Pod>>
+    object podBackend1_2 <<Pod>>
 
-
+}
+frontend1-.->serviceFront1
+serviceFront1-->podFront1_1
+serviceFront1-->podFront1_2
+podFront1_1-->serviceBackend1
+podFront1_2-->serviceBackend1
+backend1-.->serviceBackend1
+serviceBackend1-->podBackend1_1
+serviceBackend1-->podBackend1_2
 @enduml

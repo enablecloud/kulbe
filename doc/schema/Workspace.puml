@@ -1,14 +1,82 @@
 @startuml
 
-package "Some Group" {
-HTTP - [First Component]
-[Another Component]
+' color to use
+' #FFB05A
+' #FFB05A
+' #D5E821
+' #31FFB4
+' #514BEF
+skinparam handwritten true
+
+skinparam interface {
+  backgroundColor RosyBrown
+  borderColor orange
 }
 
-package "Other Groups" {
-FTP - [Second Component]
+skinparam component {
+	ArrowColor DeepSkyBlue
+	ActorBorderColor DeepSkyBlue
+    BackgroundColor<<Apache>> Red
+    BorderColor<<Apache>> #FF6655
+    FontName Courier
+    BackgroundColor <<Blue>> DeepSkyBlue
+    BorderColor black
+    BackgroundColor gold
+    ArrowFontName Impact
+    ArrowColor #996655
+    ArrowFontColor #777777
 
-[First Component] --> FTP
 }
+
+header
+<font color=red>Warning:</font>
+Draft
+endheader
+center footer Tenant,User,Workspace,Application and Component
+
+package "Tenant" {
+    frame "User" {
+        cloud "Workspace 1" {
+
+        node "Application 1" {
+            database "Service 1" {
+                interface ServiceFront
+                [Front 1] #FFB05A
+                [Front 2] #FFB05A
+            }
+            database "Service 2" {
+                interface ServiceBack
+                [Back 1] #D5E821
+                [Back 2] #D5E821
+            }
+            database "Service 3" {
+                [Job] #514BEF
+            }
+            HTTP - ServiceFront
+            HTTP - ServiceBack
+            ServiceFront -> [Front 1]  <<Blue>>
+            [Front 1]-->ServiceBack
+            ServiceBack-->[Back 1]<<Blue>>
+            ServiceBack-->[Back 2]
+            ServiceFront-->[Front 2]
+            [Front 2]-->ServiceBack
+            [Job]-->ServiceBack
+
+        }
+        node "Application 2" {
+                database "Service 4" {
+                 interface ServiceFront2
+                [Front 4] #FF749A
+                }
+                    ServiceFront2 -> [Front 4]
+                    [Front 4]-->ServiceBack
+
+
+                }
+        }
+
+}
+
+
 
 @enduml
