@@ -1,0 +1,67 @@
+package: github.com/keel-hq/keel
+import:
+- package: k8s.io/code-generator
+- package: k8s.io/api
+- package: github.com/Masterminds/semver
+  version: ^1.3.1
+- package: github.com/Sirupsen/logrus
+- package: github.com/docker/distribution
+  # version: 5db89f0ca68677abc5eefce8f2a0a772c98ba52d
+  subpackages:
+  - digest
+  - reference
+- package: github.com/ghodss/yaml
+  version: ^1.0.0
+- package: github.com/gorilla/mux
+  version: ^1.4.0
+- package: github.com/nlopes/slack
+  version: ^0.1.0
+- package: github.com/rusenask/cron
+  version: v1.1.0
+- package: github.com/rusenask/docker-registry-client
+  version: ^0.1.2
+  subpackages:
+  - registry
+- package: github.com/urfave/negroni
+  version: ^0.2.0
+- package: golang.org/x/text
+  version: 836efe42bb4aa16aaa17b9c155d8813d336ed720
+- package: golang.org/x/net
+  version: ab5485076ff3407ad2d02db054635913f017b0ed
+  subpackages:
+  - context
+# - package: google.golang.org/api
+#   subpackages:
+#   - option
+- package: github.com/golang/protobuf
+  version: 0a4f71a498b7c4812f64969510bcb4eca251e33a
+- package: google.golang.org/api
+  # version: 324744a33f1f37e63dd1695cfb3ec9a3e4a1cb05
+  version: 295e4bb0ade057ae2cfb9876ab0b54635dbfcea4
+  subpackages:
+  - iterator
+  - option
+  - support
+  - transport
+- package: google.golang.org/grpc
+  version: v1.5.0
+- package: k8s.io/apimachinery
+  subpackages:
+  - status
+  - pkg/apis/meta/v1
+- package: k8s.io/client-go
+  version: v3.0.0-beta.0
+  subpackages:
+  - kubernetes
+  - pkg/api/v1
+  - pkg/apis/extensions/v1beta1
+  - rest
+  - tools/clientcmd
+- package: k8s.io/helm
+  version: ^2.5.0
+  subpackages:
+  - pkg/chartutil
+  - pkg/helm
+  - pkg/proto/hapi/chart
+  - pkg/proto/hapi/services
+  - pkg/strvals
