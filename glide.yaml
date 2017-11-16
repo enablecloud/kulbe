@@ -1,4 +1,4 @@
-package: github.com/keel-hq/keel
+package: github.com/enablecloud/kulbe
 import:
 - package: k8s.io/code-generator
 - package: k8s.io/api
