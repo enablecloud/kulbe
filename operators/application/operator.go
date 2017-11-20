@@ -1,19 +1,16 @@
-package kubeappoperator
+package operator
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"os/signal"
 	"reflect"
-	"strings"
 	"syscall"
 	"time"
 
 	"github.com/derekparker/delve/pkg/config"
-
+	crv1 "github.com/enablecloud/kulbe/apis/cr/application/v1"
 	"k8s.io/api/core/v1"
-	extv1beta1 "k8s.io/api/extensions/v1beta1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	"k8s.io/apimachinery/pkg/fields"
@@ -274,7 +271,7 @@ func (c *Controller) processItem(key string, del bool) error {
 func watchAppFolder(clientkub kubernetes.Interface, client *rest.RESTClient, eventHandler Handler) *Controller {
 
 	//Define what we want to look for (Services)
-	watchlist := cache.NewListWatchFromClient(client, "appfolders", api.NamespaceAll, fields.Everything())
+	watchlist := cache.NewListWatchFromClient(client, "kapps", api.NamespaceAll, fields.Everything())
 
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 	deletequeue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
@@ -283,7 +280,7 @@ func watchAppFolder(clientkub kubernetes.Interface, client *rest.RESTClient, eve
 	//Setup an informer to call functions when the watchlist changes
 	informer := cache.NewSharedIndexInformer(
 		watchlist,
-		&crv1.AppFolder{},
+		&crv1.Application{},
 		0, //Skip resync
 		cache.Indexers{},
 	)
@@ -340,24 +337,26 @@ func (d *Default) ObjectCreated(obj interface{}) {
 	fmt.Println("Processing create to ObjectCreated ")
 	//deploymentsClient := d.clientkub.AppsV1beta2().Deployments(v1.NamespaceDefault)
 	fmt.Println(reflect.TypeOf(obj))
-	objAppFolder, ok := obj.(*crv1.AppFolder)
-	if ok && objAppFolder != nil && reflect.TypeOf(obj).String() == "*v1.AppFolder" {
-		for i, v := range obj.(*crv1.AppFolder).Spec.List.Items {
+	objAppFolder, ok := obj.(*crv1.Application)
+	if ok && objAppFolder != nil && reflect.TypeOf(obj).String() == "*v1.Application" {
+		/*
+			for i, v := range obj.(*crv1.Application).Spec.List.Items {
 
-			ata, _ := json.Marshal(v)
-			new := extv1beta1.Deployment{}
-			json.Unmarshal(ata, &new)
-			if strings.Compare(new.Kind, "Deployment") == 0 {
-				deploymentsClient := d.clientkub.ExtensionsV1beta1().Deployments("default")
-				result, err := deploymentsClient.Create(&new)
-				if err != nil {
-					fmt.Printf("Created deployment %q.\n", err)
-					continue
+				ata, _ := json.Marshal(v)
+				new := extv1beta1.Deployment{}
+				json.Unmarshal(ata, &new)
+				if strings.Compare(new.Kind, "Deployment") == 0 {
+					deploymentsClient := d.clientkub.ExtensionsV1beta1().Deployments("default")
+					result, err := deploymentsClient.Create(&new)
+					if err != nil {
+						fmt.Printf("Created deployment %q.\n", err)
+						continue
+					}
+					fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName(), i)
 				}
-				fmt.Printf("Created deployment %q.\n", result.GetObjectMeta().GetName(), i)
-			}
 
-		}
+			}
+		*/
 	}
 
 }
@@ -366,29 +365,30 @@ func (d *Default) ObjectDeleted(obj interface{}) {
 
 	fmt.Println("Processing remove to ObjectDeleted ")
 	//deploymentsClient := d.clientkub.AppsV1beta2().Deployments(v1.NamespaceDefault)
-	objAppFolder, ok := obj.(*crv1.AppFolder)
-	if ok && objAppFolder != nil && reflect.TypeOf(obj).String() == "*v1.AppFolder" {
-		for i, v := range obj.(*crv1.AppFolder).Spec.List.Items {
+	objAppFolder, ok := obj.(*crv1.Application)
+	if ok && objAppFolder != nil && reflect.TypeOf(obj).String() == "*v1.Application" {
+		/*
+			for i, v := range obj.(*crv1.Application).Spec.List.Items {
 
-			ata, _ := json.Marshal(v)
-			new := extv1beta1.Deployment{}
-			json.Unmarshal(ata, &new)
-			if strings.Compare(new.Kind, "Deployment") == 0 {
-				deploymentsClient := d.clientkub.ExtensionsV1beta1().Deployments("default")
+				ata, _ := json.Marshal(v)
+				new := extv1beta1.Deployment{}
+				json.Unmarshal(ata, &new)
+				if strings.Compare(new.Kind, "Deployment") == 0 {
+					deploymentsClient := d.clientkub.ExtensionsV1beta1().Deployments("default")
 
-				deletePolicy := meta_v1.DeletePropagationForeground
+					deletePolicy := meta_v1.DeletePropagationForeground
 
-				err := deploymentsClient.Delete(new.Name, &meta_v1.DeleteOptions{
-					PropagationPolicy: &deletePolicy,
-				})
-				if err != nil {
-					fmt.Printf("Delete deployment %q.\n", err)
-					continue
+					err := deploymentsClient.Delete(new.Name, &meta_v1.DeleteOptions{
+						PropagationPolicy: &deletePolicy,
+					})
+					if err != nil {
+						fmt.Printf("Delete deployment %q.\n", err)
+						continue
+					}
+					fmt.Printf("Delete deployment %q.\n", new.Name, i)
 				}
-				fmt.Printf("Delete deployment %q.\n", new.Name, i)
-			}
 
-		}
+			}*/
 	}
 }
 
