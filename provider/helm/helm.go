@@ -2,6 +2,7 @@ package helm
 
 import (
 	"k8s.io/helm/pkg/helm"
+	"k8s.io/helm/pkg/proto/hapi/chart"
 	"k8s.io/helm/pkg/proto/hapi/services"
 	"k8s.io/kubernetes/pkg/kubelet/kubeletconfig/util/log"
 )
@@ -10,9 +11,12 @@ var (
 	TillerAddress = "tiller-deploy:44134"
 )
 
-func InstallRelease(address string, release string, namespace string, releasename string) *services.InstallReleaseResponse {
+func InstallRelease(address string, release string, version string, namespace string, releasename string) *services.InstallReleaseResponse {
 	var client = NewHelmImplementer(address)
-	response, _ := client.InstallRelease(release, namespace, helm.ReleaseName(releasename))
+	meta := chart.Metadata{Version: version, Name: release}
+	//releaseContent, _ := client.ReleaseContent(release, helm.ContentReleaseVersion(version))
+	//releaseContent.Release.Chart
+	response, _ := client.InstallReleaseFromChart(&chart.Chart{Metadata: &meta}, namespace, helm.ReleaseName(releasename))
 	return response
 }
 
