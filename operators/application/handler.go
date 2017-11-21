@@ -53,8 +53,8 @@ func (d *Default) ObjectCreated(obj interface{}) {
 	fmt.Println("Processing create to ObjectCreated ")
 	//deploymentsClient := d.clientkub.AppsV1beta2().Deployments(v1.NamespaceDefault)
 	fmt.Println(reflect.TypeOf(obj))
-	objAppFolder, ok := obj.(*crv1.Application)
-	if ok && objAppFolder != nil && reflect.TypeOf(obj).String() == "*v1.Application" {
+	objAppFolder, ok := obj.(*crv1.KApplication)
+	if ok && objAppFolder != nil && reflect.TypeOf(obj).String() == "*v1.KApplication" {
 		//create Namespace
 		name := objAppFolder.Name
 		namespace := objAppFolder.Namespace
@@ -79,8 +79,8 @@ func (d *Default) ObjectDeleted(obj interface{}) {
 
 	fmt.Println("Processing remove to ObjectDeleted ")
 	//deploymentsClient := d.clientkub.AppsV1beta2().Deployments(v1.NamespaceDefault)
-	objAppFolder, ok := obj.(*crv1.Application)
-	if ok && objAppFolder != nil && reflect.TypeOf(obj).String() == "*v1.Application" {
+	objAppFolder, ok := obj.(*crv1.KApplication)
+	if ok && objAppFolder != nil && reflect.TypeOf(obj).String() == "*v1.KApplication" {
 		name := objAppFolder.Name
 		namespace := objAppFolder.Namespace
 		newNamespape := namespace + name

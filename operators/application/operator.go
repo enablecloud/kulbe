@@ -20,9 +20,7 @@ import (
 	"k8s.io/client-go/tools/cache"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/util/workqueue"
-	"k8s.io/kubernetes/pkg/api"
 )
-
 
 const maxRetries = 5
 
@@ -70,25 +68,19 @@ func GetClientOutOfCluster() kubernetes.Interface {
 	return clientset
 }
 
-func Start(conf *config.Config, cfg *rest.Config, eventHandler Handler) {
+func Start(conf *config.Config, namespace string, cfg *rest.Config, eventHandler Handler) {
 	kubeClient := GetClientOutOfCluster()
 
 	stopCh := make(chan struct{})
 	defer close(stopCh)
 
 	// make a new config for our extension's API group, using the first config as a baseline
-	appClient, appScheme, err := NewClient(cfg)
+	appClient, _, err := NewClient(cfg)
 	if err != nil {
 		panic(err)
 	}
 
-	// start a controller on instances of our custom resource
-	controller := ApplicationController{
-		ApplicationClient: appClient,
-		ApplicationScheme: appScheme,
-	}
-	fmt.Println(controller.ApplicationScheme.Default)
-	appF := watchAppFolder(kubeClient, appClient, eventHandler)
+	appF := watchAppFolder(kubeClient, namespace, appClient, eventHandler)
 	go appF.Run(stopCh)
 	sigterm := make(chan os.Signal, 1)
 	signal.Notify(sigterm, syscall.SIGTERM)
@@ -206,10 +198,10 @@ func (c *Controller) processItem(key string, del bool) error {
 	return nil
 }
 
-func watchAppFolder(clientkub kubernetes.Interface, client *rest.RESTClient, eventHandler Handler) *Controller {
+func watchAppFolder(clientkub kubernetes.Interface, namespace string, client *rest.RESTClient, eventHandler Handler) *Controller {
 
 	//Define what we want to look for (Services)
-	watchlist := cache.NewListWatchFromClient(client, "kapps", api.NamespaceAll, fields.Everything())
+	watchlist := cache.NewListWatchFromClient(client, "kapps", namespace, fields.Everything())
 
 	queue := workqueue.NewRateLimitingQueue(workqueue.DefaultControllerRateLimiter())
 	//	resyncPeriod := 30 * time.Minute
@@ -217,7 +209,7 @@ func watchAppFolder(clientkub kubernetes.Interface, client *rest.RESTClient, eve
 	//Setup an informer to call functions when the watchlist changes
 	informer := cache.NewSharedIndexInformer(
 		watchlist,
-		&crv1.Application{},
+		&crv1.KApplication{},
 		0, //Skip resync
 		cache.Indexers{},
 	)

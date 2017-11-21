@@ -10,7 +10,7 @@ const ApplicationResourcePlural = "kapps"
 // +genclient
 // +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type Application struct {
+type KApplication struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata"`
 	Spec              ApplicationSpec   `json:"spec"`
@@ -36,8 +36,8 @@ const (
 // +genclient
 // +genclient:noStatus
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
-type ApplicationList struct {
+type KApplicationList struct {
 	metav1.TypeMeta `json:",inline"`
 	metav1.ListMeta `json:"metadata"`
-	Items           []Application `json:"items"`
+	Items           []KApplication `json:"items"`
 }
