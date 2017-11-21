@@ -28,7 +28,6 @@ const maxRetries = 5
 type Controller struct {
 	clientset    kubernetes.Interface
 	queue        workqueue.RateLimitingInterface
-	deletequeue  workqueue.RateLimitingInterface
 	informer     cache.SharedIndexInformer
 	eventHandler Handler
 }
@@ -156,7 +155,7 @@ func (c *Controller) processNextItem() bool {
 	}
 	defer c.queue.Done(key)
 
-	err := c.processItem(key.(string), false)
+	err := c.processItem(key.(EventQueued), false)
 	if err == nil {
 		// No error, reset the ratelimit counters
 		c.queue.Forget(key)
@@ -170,21 +169,21 @@ func (c *Controller) processNextItem() bool {
 		utilruntime.HandleError(err)
 	}
 
-	keyD, quitD := c.deletequeue.Get()
+	keyD, quitD := c.queue.Get()
 	if quitD {
 		return false
 	}
-	defer c.deletequeue.Done(keyD)
+	defer c.queue.Done(keyD)
 
 	c.eventHandler.ObjectDeleted(keyD)
 
 	return true
 }
 
-func (c *Controller) processItem(key string, del bool) error {
+func (c *Controller) processItem(key EventQueued, del bool) error {
 	fmt.Println("Processing change to Object %s", key)
 
-	obj, exists, err := c.informer.GetIndexer().GetByKey(key)
+	obj, exists, err := c.informer.GetIndexer().GetByKey(key.Key)
 	if err != nil {
 		return fmt.Errorf("Error fetching object with key %s from store: %v", key, err)
 	}
