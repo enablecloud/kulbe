@@ -13,9 +13,10 @@ import (
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/environment"
+	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/portforwarder"
 	"k8s.io/helm/pkg/proto/hapi/services"
-	"k8s.io/helm/pkg/repo"
+	repo "k8s.io/helm/pkg/repo"
 )
 
 var (
@@ -25,7 +26,21 @@ var (
 func InstallRelease(release string, version string, namespace string, releasename string, config *common.Default) *services.InstallReleaseResponse {
 	var client = NewHelmImplementer(config)
 	// Check chart requirements to make sure all dependencies are present in /charts
-	path, err := locateChartPath("", release, version, false, "", "", "", "")
+	var settings = helm_env.EnvSettings{TillerHost: config.TillerAddress, TillerNamespace: config.TillerNamespace, Home: config.Home, KubeContext: config.KubeContext}
+
+	f, err := repo.LoadRepositoriesFile(config.Home.RepositoryFile())
+	var chartURL = ""
+	for _, v := range f.Repositories {
+		chartURL, err := repo.FindChartInRepoURL(v.URL, release, "", "", "", "", getter.All(settings))
+		if err != nil {
+			fmt.Printf("Chart error: '%s'\n", err)
+		}
+		if chartURL != "" {
+
+			break
+		}
+	}
+	path, err := locateChartPath(chartURL, release, version, false, "", "", "", "")
 	if err != nil {
 		fmt.Printf("Created locateChartPath: '%s'\n", err)
 	}
@@ -64,7 +79,7 @@ func NewHelmImplementer(config *common.Default) *helm.Client {
 	} else {
 		fmt.Printf("provider.helm: tiller address '%s' supplied", config.TillerAddress)
 	}
-	if config.TillerTunnel == "true" {
+	if config.TillerTunnel {
 		return helm.NewClient(helm.Host(tillerHost))
 	}
 	return helm.NewClient(helm.Host(config.TillerAddress))
