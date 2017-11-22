@@ -6,10 +6,12 @@ import (
 
 	"github.com/derekparker/delve/pkg/config"
 	crv1 "github.com/enablecloud/kulbe/apis/cr/application/v1"
+	"github.com/enablecloud/kulbe/common"
 	hlm "github.com/enablecloud/kulbe/provider/helm"
 	nspace "github.com/enablecloud/kulbe/provider/namespace"
 
 	"k8s.io/client-go/kubernetes"
+	"k8s.io/client-go/rest"
 )
 
 type EventType string
@@ -26,7 +28,7 @@ type EventQueued struct {
 }
 
 type Handler interface {
-	Init(c *config.Config, kube kubernetes.Interface) error
+	Init(c *config.Config, rest *rest.Config, kube kubernetes.Interface, tillernamespace string, tillerAddress string, tillertunnel string) error
 	ObjectCreated(obj interface{})
 	ObjectDeleted(obj interface{})
 	ObjectUpdated(oldObj, newObj interface{})
@@ -35,16 +37,23 @@ type Handler interface {
 // Default handler implements Handler interface,
 // print each event with JSON format
 type Default struct {
-	config        *config.Config
-	clientkub     kubernetes.Interface
-	tillerAddress string
+	config          *config.Config
+	restConfig      *rest.Config
+	clientkub       kubernetes.Interface
+	tillerAddress   string
+	tillerNamespace string
+	tillerTunnel    string
 }
 
 // Init initializes handler configuration
 // Do nothing for default handler
-func (d *Default) Init(conf *config.Config, clientb kubernetes.Interface) error {
+func (d *Default) Init(conf *config.Config, rest *rest.Config, clientb kubernetes.Interface, tillernamespace string, tillerAddress string, tillertunnel string) error {
 	d.config = conf
+	d.restConfig = rest
 	d.clientkub = clientb
+	d.tillerAddress = tillerAddress
+	d.tillerNamespace = tillernamespace
+	d.tillerTunnel = tillertunnel
 	return nil
 
 }
@@ -61,10 +70,13 @@ func (d *Default) ObjectCreated(obj interface{}) {
 		newNamespape := namespace + name
 		nspace.CreateNameSpace(d.clientkub, newNamespape)
 		for i, v := range objAppFolder.Spec.Components.Items {
+			fmt.Println(v)
+			fmt.Println(v.Spec)
 			compName := v.Name
 			helmName := v.Spec.HelmName
 			helmVersion := v.Spec.Version
-			hlm.InstallRelease(d.tillerAddress, helmName, helmVersion, newNamespape, compName)
+			newConf := common.Default{TillerAddress: d.tillerAddress, TillerNamespace: d.tillerNamespace, TillerTunnel: d.tillerTunnel, Config: d.config, RestConfig: d.restConfig, Clientkub: d.clientkub}
+			hlm.InstallRelease(helmName, helmVersion, newNamespape, compName, &newConf)
 			fmt.Println(helmName)
 			fmt.Println(helmVersion)
 			fmt.Println(i)
@@ -88,7 +100,9 @@ func (d *Default) ObjectDeleted(obj interface{}) {
 			compName := v.Name
 			helmName := v.Spec.HelmName
 			helmVersion := v.Spec.Version
-			hlm.DeleteRelease(d.tillerAddress, compName)
+			newConf := common.Default{TillerAddress: d.tillerAddress, TillerNamespace: d.tillerNamespace, TillerTunnel: d.tillerTunnel, Config: d.config, RestConfig: d.restConfig, Clientkub: d.clientkub}
+
+			hlm.DeleteRelease(compName, &newConf)
 			fmt.Println(helmName)
 			fmt.Println(helmVersion)
 			fmt.Println(i)
