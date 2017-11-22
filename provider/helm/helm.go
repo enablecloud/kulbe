@@ -26,37 +26,54 @@ var (
 func InstallRelease(release string, version string, namespace string, releasename string, config *common.Default) *services.InstallReleaseResponse {
 	var client = NewHelmImplementer(config)
 	// Check chart requirements to make sure all dependencies are present in /charts
-	var settings = helm_env.EnvSettings{TillerHost: config.TillerAddress, TillerNamespace: config.TillerNamespace, Home: config.Home, KubeContext: config.KubeContext}
+	var settings = helm_env.EnvSettings{TillerHost: config.TillerAddress, TillerNamespace: config.TillerNamespace, Home: config.Home, KubeContext: config.KubeContext, Debug: config.DebugHelm}
 
 	f, err := repo.LoadRepositoriesFile(config.Home.RepositoryFile())
-	var chartURL = ""
+	var chartURLSelected = ""
 	for _, v := range f.Repositories {
-		chartURL, err := repo.FindChartInRepoURL(v.URL, release, "", "", "", "", getter.All(settings))
+		fmt.Printf("Repo url: '%s'\n", v.URL)
+		chartURL, err := repo.FindChartInRepoURL(v.URL, "consul", "1.0.0", "", "", "", getter.All(settings))
+		fmt.Printf("Chart url: '%s'\n", chartURL)
 		if err != nil {
-			fmt.Printf("Chart error: '%s'\n", err)
+			fmt.Printf("Chart in repo error: '%s'\n", err)
+		} else {
+			chartURLSelected = chartURL
 		}
-		if chartURL != "" {
+	}
+	fmt.Printf("Selected url: '%s'\n", chartURLSelected)
+	if chartURLSelected == "" {
+		return nil
+	}
+	//path, err := locateChartPath(chartURL, release, version, false, "", "", "", "")
+	//if err != nil {
+	//	fmt.Printf("Created locateChartPath: '%s'\n", err)
+	//}
 
-			break
-		}
+	dl := downloader.ChartDownloader{
+		HelmHome: settings.Home,
+		Out:      os.Stdout,
+		Keyring:  "",
+		Getters:  getter.All(settings),
 	}
-	path, err := locateChartPath(chartURL, release, version, false, "", "", "", "")
+	filename, _, err := dl.DownloadTo(chartURLSelected, "1.0.0", settings.Home.Archive())
 	if err != nil {
-		fmt.Printf("Created locateChartPath: '%s'\n", err)
+		fmt.Printf("Created DownloadTo: '%s'\n", err)
 	}
-	chartRequested, err := chartutil.Load(path)
+	chartRequested, err := chartutil.Load(filename)
 	if err != nil {
-		fmt.Printf("Created error: '%s'\n", err)
+		fmt.Printf("Created chartutil: '%s'\n", err)
 	}
-	fmt.Printf("Created error: '%s'\n", err)
+	fmt.Println(chartRequested)
 	//releaseContent, _ := client.ReleaseContent(release, helm.ContentReleaseVersion(version))
 	//releaseContent.Release.Chart
 	//chart.Metadata{Version: version, Name: release}
 	//&chart.Chart{Metadata: &meta
 	response, err := client.InstallReleaseFromChart(chartRequested, namespace, helm.ReleaseName(releasename))
 	if err != nil {
-		fmt.Printf("Created error: '%s'\n", err)
+		fmt.Printf("Created InstallReleaseFromChart: '%s'\n", err)
 	}
+	fmt.Println(response)
+
 	return response
 }
 
