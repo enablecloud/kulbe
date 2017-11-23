@@ -1,21 +1,22 @@
 package helm
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"log"
+	"os/exec"
+
 	common "github.com/enablecloud/kulbe/common"
-	"k8s.io/helm/pkg/chartutil"
 	"k8s.io/helm/pkg/downloader"
 	"k8s.io/helm/pkg/getter"
 	"k8s.io/helm/pkg/helm"
 	"k8s.io/helm/pkg/helm/environment"
-	helm_env "k8s.io/helm/pkg/helm/environment"
 	"k8s.io/helm/pkg/helm/portforwarder"
-	"k8s.io/helm/pkg/proto/hapi/services"
 	repo "k8s.io/helm/pkg/repo"
 )
 
@@ -23,64 +24,36 @@ var (
 	TillerAddress = "tiller-deploy:44134"
 )
 
-func InstallRelease(release string, version string, namespace string, releasename string, config *common.Default) *services.InstallReleaseResponse {
-	var client = NewHelmImplementer(config)
-	// Check chart requirements to make sure all dependencies are present in /charts
-	var settings = helm_env.EnvSettings{TillerHost: config.TillerAddress, TillerNamespace: config.TillerNamespace, Home: config.Home, KubeContext: config.KubeContext, Debug: config.DebugHelm}
+func InstallRelease(release string, version string, namespace string, releasename string, config *common.Default) {
 
-	f, err := repo.LoadRepositoriesFile(config.Home.RepositoryFile())
-	var chartURLSelected = ""
-	for _, v := range f.Repositories {
-		fmt.Printf("Repo url: '%s'\n", v.URL)
-		chartURL, err := repo.FindChartInRepoURL(v.URL, "consul", "1.0.0", "", "", "", getter.All(settings))
-		fmt.Printf("Chart url: '%s'\n", chartURL)
-		if err != nil {
-			fmt.Printf("Chart in repo error: '%s'\n", err)
-		} else {
-			chartURLSelected = chartURL
-		}
-	}
-	fmt.Printf("Selected url: '%s'\n", chartURLSelected)
-	if chartURLSelected == "" {
-		return nil
-	}
-	//path, err := locateChartPath(chartURL, release, version, false, "", "", "", "")
-	//if err != nil {
-	//	fmt.Printf("Created locateChartPath: '%s'\n", err)
-	//}
+	cmd := exec.Command("helm", "install", release, "--version", version, "-n", releasename, "--namespace", namespace)
 
-	dl := downloader.ChartDownloader{
-		HelmHome: settings.Home,
-		Out:      os.Stdout,
-		Keyring:  "",
-		Getters:  getter.All(settings),
+	if version == "" {
+		newcmd := exec.Command("helm", "install", release, "-n", releasename, "--namespace", namespace)
+		cmd = newcmd
 	}
-	filename, _, err := dl.DownloadTo(chartURLSelected, "1.0.0", settings.Home.Archive())
+	log.Printf("Command start with : %s", cmd.Args)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+	err := cmd.Run()
 	if err != nil {
-		fmt.Printf("Created DownloadTo: '%s'\n", err)
+		log.Printf("Command finished with error: %v", err)
 	}
-	chartRequested, err := chartutil.Load(filename)
-	if err != nil {
-		fmt.Printf("Created chartutil: '%s'\n", err)
-	}
-	fmt.Println(chartRequested)
-	//releaseContent, _ := client.ReleaseContent(release, helm.ContentReleaseVersion(version))
-	//releaseContent.Release.Chart
-	//chart.Metadata{Version: version, Name: release}
-	//&chart.Chart{Metadata: &meta
-	response, err := client.InstallReleaseFromChart(chartRequested, namespace, helm.ReleaseName(releasename))
-	if err != nil {
-		fmt.Printf("Created InstallReleaseFromChart: '%s'\n", err)
-	}
-	fmt.Println(response)
-
-	return response
+	log.Printf("Command finished with : %v", out.String())
 }
 
-func DeleteRelease(releasename string, config *common.Default) *services.UninstallReleaseResponse {
-	var client = NewHelmImplementer(config)
-	response, _ := client.DeleteRelease(releasename)
-	return response
+func DeleteRelease(releasename string, config *common.Default) {
+	cmd := exec.Command("helm", "delete", "--purge", releasename)
+	log.Printf("Command start with : %s", cmd.Args)
+	var out bytes.Buffer
+	cmd.Stdout = &out
+
+	err := cmd.Run()
+	if err != nil {
+		log.Printf("Command finished with error: %v", err)
+	}
+	log.Printf("Command finished with : %v", out.String())
+
 }
 
 func NewHelmImplementer(config *common.Default) *helm.Client {
@@ -116,7 +89,6 @@ func NewHelmImplementer(config *common.Default) *helm.Client {
 func locateChartPath(repoURL, name, version string, verify bool, keyring,
 	certFile, keyFile, caFile string) (string, error) {
 	fmt.Println("Search ", name, version)
-	fmt.Printf("Search for: '%s' '%s'\n", name, version)
 	name = strings.TrimSpace(name)
 	version = strings.TrimSpace(version)
 

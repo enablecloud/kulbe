@@ -1,0 +1,9 @@
+kind: KApplication
+apiVersion: kulbe.enablecloud.github.com/v1
+metadata:
+  name: sample1
+spec:
+  components:
+    items:
+      - spec:
+         helmname: "stable/consul"

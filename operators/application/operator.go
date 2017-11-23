@@ -154,7 +154,7 @@ func (c *Controller) processNextItem() bool {
 	}
 	defer c.queue.Done(key)
 
-	err := c.processItem(key.(EventQueued), false)
+	err := c.processItem(key.(EventQueued))
 	if err == nil {
 		// No error, reset the ratelimit counters
 		c.queue.Forget(key)
@@ -174,25 +174,27 @@ func (c *Controller) processNextItem() bool {
 	}
 	defer c.queue.Done(keyD)
 
-	c.eventHandler.ObjectDeleted(keyD)
-
 	return true
 }
 
-func (c *Controller) processItem(key EventQueued, del bool) error {
-	fmt.Println("Processing change to Object %s", key)
-
-	obj, exists, err := c.informer.GetIndexer().GetByKey(key.Key)
+func (c *Controller) processItem(key EventQueued) error {
+	obj, _, err := c.informer.GetIndexer().GetByKey(key.Key)
 	if err != nil {
 		return fmt.Errorf("Error fetching object with key %s from store: %v", key, err)
 	}
-
-	if del || !exists {
-		c.eventHandler.ObjectDeleted(key)
+	if key.Event == EventTypeCreate {
+		c.eventHandler.ObjectCreated(obj)
+		return nil
+	}
+	if key.Event == EventTypeUpdate {
+		c.eventHandler.ObjectUpdated(key.Old, obj)
+		return nil
+	}
+	if key.Event == EventTypeDelete {
+		c.eventHandler.ObjectDeleted(key.Old)
 		return nil
 	}
 
-	c.eventHandler.ObjectCreated(obj)
 	return nil
 }
 
@@ -215,22 +217,28 @@ func watchAppFolder(clientkub kubernetes.Interface, namespace string, client *re
 		AddFunc: func(obj interface{}) {
 			key, err := cache.MetaNamespaceKeyFunc(obj)
 			if err == nil {
-				fmt.Println("Create %s ", key)
+				fmt.Println("Create ", key)
 				queue.Add(EventQueued{Event: EventTypeCreate, Key: key})
 			}
 		},
 		UpdateFunc: func(old, new interface{}) {
-			key, err := cache.MetaNamespaceKeyFunc(new)
+			_, err := cache.DeletionHandlingMetaNamespaceKeyFunc(old)
+			_, err = cache.MetaNamespaceKeyFunc(new)
 			if err == nil {
-				fmt.Println("Update %s ", key)
-				queue.Add(EventQueued{Event: EventTypeUpdate, Key: key})
+				//Workaround as queue is not take into similar object
+				eventHandler.ObjectUpdated(old, new)
+				//queue.Add(EventQueued{Event: EventTypeUpdate, Key: key, Old: old})
+				//queue.Add(EventQueued{Event: EventTypeUpdate, Key: key, Old: old})
+
 			}
 		},
 		DeleteFunc: func(obj interface{}) {
 			key, err := cache.DeletionHandlingMetaNamespaceKeyFunc(obj)
 			if err == nil {
-				fmt.Println("Delete %s ", key)
-				queue.Add(EventQueued{Event: EventTypeDelete, Key: key})
+				fmt.Println("Delete ", key)
+				//Workaround as queue is not take into similar object
+				//queue.Add(EventQueued{Event: EventTypeDelete, Key: key, Old: obj})
+				eventHandler.ObjectDeleted(obj)
 			}
 		},
 	})
