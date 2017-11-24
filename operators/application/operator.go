@@ -36,6 +36,7 @@ func GetClient() kubernetes.Interface {
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		fmt.Println("Can not get kubernetes config: %v", err)
+		return nil
 	}
 
 	clientset, err := kubernetes.NewForConfig(config)
@@ -67,7 +68,10 @@ func GetClientOutOfCluster() kubernetes.Interface {
 }
 
 func Start(conf *config.Config, namespace string, cfg *rest.Config, eventHandler Handler) {
-	kubeClient := GetClientOutOfCluster()
+	var kubeClient = GetClient()
+	if kubeClient == nil {
+		kubeClient = GetClientOutOfCluster()
+	}
 
 	stopCh := make(chan struct{})
 	defer close(stopCh)

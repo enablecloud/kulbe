@@ -35,8 +35,11 @@ func main() {
 	//var homeLad = new(helmpath.Home)
 	//homeLad = (helmpath.Home)(*helmhome)
 	//homeLad = *helmhome
-
-	eventHandler.Init(conf, config, kubeappoperator.GetClientOutOfCluster(), *tillernamespace, *tilleraddress, *tillertunnel, (helmpath.Home)(*helmhome), *debug, *kubeContext, *kubeconfig)
+	var clientCluster = kubeappoperator.GetClient()
+	if clientCluster == nil {
+		clientCluster = kubeappoperator.GetClientOutOfCluster()
+	}
+	eventHandler.Init(conf, config, clientCluster, *tillernamespace, *tilleraddress, *tillertunnel, (helmpath.Home)(*helmhome), *debug, *kubeContext, *kubeconfig)
 	fmt.Println("Start with namespace : '" + *namespace + "' and config: '" + *kubeconfig + "'.")
 	kubeappoperator.Start(conf, *namespace, config, eventHandler)
 

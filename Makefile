@@ -12,7 +12,7 @@ test:
 	go test -v `go list ./... | egrep -v /vendor/`
 
 build:
-	@echo "++ Building keel"
+	@echo "++ Building kulbe"
 	@echo "$(GOPATH)"
 	CGO_ENABLED=0 GOOS=linux go build -a -tags netgo -ldflags "$(LDFLAGS)" -o kulbe .
 

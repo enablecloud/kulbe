@@ -1,0 +1,32 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kulbe
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: kulbe
+  labels:
+      name: "kulbe"
+spec:
+  replicas: 1
+  template:
+    metadata:
+      name: kulbe
+      labels:
+        app: kulbe
+    spec:
+      serviceAccountName: kulbe
+      containers:
+        - image: enablecloud/kulbe:alpha
+          imagePullPolicy: Always
+          name: kulbe
+          command: ["/bin/kulbe"]
+          args: [ "--namespace", $(PODNAMESPACE)]
+          env:
+           - name: PODNAMESPACE
+             valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          

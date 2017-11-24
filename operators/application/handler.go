@@ -83,7 +83,7 @@ func (d *Default) ObjectDeleted(obj interface{}) {
 		fmt.Println("Processing Delete of ", objAppFolder.Name)
 		name := objAppFolder.Name
 		namespace := objAppFolder.Namespace
-		newNamespape := namespace + name
+		newNamespape := namespace + "-" + name
 		for _, v := range objAppFolder.Spec.Components.Items {
 			compName := v.Name
 			helmName := v.Spec.HelmName
