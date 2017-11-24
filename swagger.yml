@@ -120,12 +120,35 @@ paths:
     
      
 definitions:
-  
   Application:
     type: "object"
     required:
     - "name"
-    - "photoUrls"
+    properties:
+      name:
+        type: "string"
+        example: "Trainer Trading"
+      service:
+        type: "array"
+        xml:
+          name: "photoUrl"
+          wrapped: true
+        items:
+          type: "string"
+     
+      status:
+        type: "string"
+        description: "pet status in the store"
+        enum:
+        - "available"
+        - "pending"
+        - "sold"
+    xml:
+      name: "Pet"
+  Service:
+    type: "object"
+    required:
+    - "name"
     properties:
       id:
         type: "integer"
@@ -149,8 +172,7 @@ definitions:
         - "available"
         - "pending"
         - "sold"
-    xml:
-      name: "Pet"
+  
  
 externalDocs:
   description: "Find out more about Swagger"
