@@ -8,6 +8,21 @@ schemes:
 - "http"
 - "https"
 paths:
+  /service:
+    get:
+      tags:
+      - "service"
+      summary: "Retrieve the list of services with theiur description"
+      description: "Should include "
+      operationId: "listService"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        405:
+          description: "Invalid input"
+    
   /application:
     get:
       tags:
@@ -35,27 +50,6 @@ paths:
       responses:
         405:
           description: "Invalid input"
-  /application/{appId}/service/add:
-    post:
-      tags:
-      - "application"
-      summary: "Add a service"
-      description: ""
-      operationId: "addServiceApp"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      responses:
-        405:
-          description: "Invalid input"
-      parameters:
-        - in: path
-          name: appId
-          type: string
-          required: true
-          description: ID of the app to update
-    
   /application/{appId}:
     get:
       tags:
@@ -115,6 +109,116 @@ paths:
           type: string
           required: true
           description: ID of the app to update
+  /application/{appId}/status:
+    get:
+      tags:
+      - "application"
+      summary: "get an application"
+      description: ""
+      operationId: "getAppStatus"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        405:
+          description: "Invalid input"
+      parameters:
+        - in: path
+          name: appId
+          type: string
+          required: true
+          description: ID of the app to update
+  /application/{appId}/service:
+    post:
+      tags:
+      - "application"
+      summary: "Add a service"
+      description: ""
+      operationId: "addServiceApp"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        405:
+          description: "Invalid input"
+      parameters:
+        - in: path
+          name: appId
+          type: string
+          required: true
+          description: ID of the app to update
+    get:
+      tags:
+      - "application"
+      summary: "get the services of an Application"
+      description: ""
+      operationId: "getAppServices"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        405:
+          description: "Invalid input"
+      parameters:
+        - in: path
+          name: appId
+          type: string
+          required: true
+          description: ID of the app to update
+  /application/{appId}/service/{serviceId}:
+    delete:
+      tags:
+      - "application"
+      summary: "Delete a service of an application"
+      description: ""
+      operationId: "deleteAppService"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        405:
+          description: "Invalid input"
+      parameters:
+        - in: path
+          name: appId
+          type: string
+          required: true
+          description: ID of the app to update
+        - in: path
+          name: serviceId
+          type: string
+          required: true
+          description: ID of the app to update
+  /application/{appId}/service/{serviceId}/status:
+    get:
+      tags:
+      - "application"
+      summary: "Get the deployment status of a service of an application"
+      description: ""
+      operationId: "getAppServiceStatus"
+      consumes:
+      - "application/json"
+      produces:
+      - "application/json"
+      responses:
+        405:
+          description: "Invalid input"
+      parameters:
+        - in: path
+          name: appId
+          type: string
+          required: true
+          description: ID of the app to update
+        - in: path
+          name: serviceId
+          type: string
+          required: true
+          description: ID of the app to update  
+  
           
       
     
@@ -130,21 +234,12 @@ definitions:
         example: "Trainer Trading"
       service:
         type: "array"
-        xml:
-          name: "photoUrl"
-          wrapped: true
         items:
-          type: "string"
+          $ref: '#/definitions/Service'
+
      
-      status:
-        type: "string"
-        description: "pet status in the store"
-        enum:
-        - "available"
-        - "pending"
-        - "sold"
-    xml:
-      name: "Pet"
+
+    
   Service:
     type: "object"
     required:
@@ -153,27 +248,38 @@ definitions:
       id:
         type: "integer"
         format: "int64"
-
       name:
         type: "string"
-        example: "doggie"
-      photoUrls:
+        example: "ffdc/reporting"
+        description: "The name of the service (required)"
+      version:
+        type: "string"
+        example: "0.1.0"
+        description: "A SemVer 2 version"
+      description:
+        type: "string"
+        example: "The service create a report back server."
+        description: "A single-sentence description of this service"
+      keywords:
         type: "array"
-        xml:
-          name: "photoUrl"
-          wrapped: true
         items:
           type: "string"
-     
-      status:
+        example: "[front,transient,...]"
+      home:
         type: "string"
-        description: "pet status in the store"
-        enum:
-        - "available"
-        - "pending"
-        - "sold"
+        example: "http://k8s.io"
+      icon:
+        type: "string"
+        example: "http://k8s.io/logo.png"
+      deprecated:
+        type: "boolean"
+        example: "false"
+      externalLinkName:
+        type: "string"
+        example: "reporting"
+        description: "Name of the service deployed "
+      
   
- 
-externalDocs:
-  description: "Find out more about Swagger"
-  url: "http://swagger.io"
+
+        
+
