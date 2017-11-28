@@ -12,7 +12,7 @@ paths:
     get:
       tags:
       - "service"
-      summary: "Retrieve the list of services with theiur description"
+      summary: "Retrieve the list of services with the description."
       description: "Should include "
       operationId: "listService"
       consumes:
@@ -22,6 +22,12 @@ paths:
       responses:
         405:
           description: "Invalid input"
+        200:
+          description: "A list of Services."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ServiceDesc"
     
   /application:
     get:
@@ -37,6 +43,12 @@ paths:
       responses:
         405:
           description: "Invalid input"
+        200:
+          description: "A list of Applications."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ApplicationStatus"
     post:
       tags:
       - "application"
@@ -50,11 +62,17 @@ paths:
       responses:
         405:
           description: "Invalid input"
+      parameters:
+        - in: body
+          name: application
+          description: The application to create.
+          schema:
+            $ref: "#/definitions/ApplicationCreation" 
   /application/{appId}:
     get:
       tags:
       - "application"
-      summary: "get an application"
+      summary: "Get an application."
       description: ""
       operationId: "getApp"
       consumes:
@@ -64,6 +82,10 @@ paths:
       responses:
         405:
           description: "Invalid input"
+        200:
+          description: "An Application."
+          schema:
+            $ref: "#/definitions/ApplicationStatus"
       parameters:
         - in: path
           name: appId
@@ -90,6 +112,11 @@ paths:
           type: string
           required: true
           description: ID of the app to update
+        - in: body
+          name: application
+          description: The application to create.
+          schema:
+            $ref: "#/definitions/ApplicationCreation" 
     delete:
       tags:
       - "application"
@@ -103,26 +130,8 @@ paths:
       responses:
         405:
           description: "Invalid input"
-      parameters:
-        - in: path
-          name: appId
-          type: string
-          required: true
-          description: ID of the app to update
-  /application/{appId}/status:
-    get:
-      tags:
-      - "application"
-      summary: "get an application"
-      description: ""
-      operationId: "getAppStatus"
-      consumes:
-      - "application/json"
-      produces:
-      - "application/json"
-      responses:
-        405:
-          description: "Invalid input"
+        200:
+          description: "OK"
       parameters:
         - in: path
           name: appId
@@ -149,10 +158,17 @@ paths:
           type: string
           required: true
           description: ID of the app to update
+        - in: body
+          name: service
+          description: The service to add.
+          schema:
+            $ref: "#/definitions/ServiceName" 
+          
+              
     get:
       tags:
       - "application"
-      summary: "get the services of an Application"
+      summary: "Get the services of an Application"
       description: ""
       operationId: "getAppServices"
       consumes:
@@ -162,12 +178,19 @@ paths:
       responses:
         405:
           description: "Invalid input"
+        200:
+          description: "A list of Services."
+          schema:
+            type: "array"
+            items:
+              $ref: "#/definitions/ServiceStatus"
       parameters:
         - in: path
           name: appId
           type: string
           required: true
           description: ID of the app to update
+      
   /application/{appId}/service/{serviceId}:
     delete:
       tags:
@@ -193,7 +216,6 @@ paths:
           type: string
           required: true
           description: ID of the app to update
-  /application/{appId}/service/{serviceId}/status:
     get:
       tags:
       - "application"
@@ -207,6 +229,10 @@ paths:
       responses:
         405:
           description: "Invalid input"
+        200:
+          description: "Statius of the service."
+          schema:
+            $ref: "#/definitions/ServiceStatus"  
       parameters:
         - in: path
           name: appId
@@ -219,28 +245,61 @@ paths:
           required: true
           description: ID of the app to update  
   
-          
+
       
     
      
 definitions:
-  Application:
+  ApplicationCreation:
     type: "object"
     required:
     - "name"
     properties:
+      id:
+        type: "string"
+        example: "Application id"
       name:
         type: "string"
         example: "Trainer Trading"
-      service:
+      services:
         type: "array"
         items:
-          $ref: '#/definitions/Service'
-
-     
-
-    
+          $ref: '#/definitions/ServiceName'
+          
+  ApplicationStatus:
+    type: "object"
+    required:
+    - "name"
+    properties:
+      id:
+        type: "string"
+        example: "Application id"
+      name:
+        type: "string"
+        example: "Trainer Trading"
+      services:
+        type: "array"
+        items:
+          $ref: '#/definitions/ServiceStatus'
   Service:
+    type: "object"
+    required:
+    - "name"
+    properties:
+      id:
+        type: "integer"
+        format: "int64"
+      name:
+        type: "string"
+        example: "ffdc/reporting"
+        description: "The name of the service (required)"
+      version:
+        type: "string"
+        example: "0.1.0"
+        description: "A SemVer 2 version"
+  ServiceDesc:
+    allOf:
+      - $ref: '#/definitions/Service' # Cat has all properties of a Pet
     type: "object"
     required:
     - "name"
@@ -274,12 +333,65 @@ definitions:
       deprecated:
         type: "boolean"
         example: "false"
-      externalLinkName:
-        type: "string"
-        example: "reporting"
-        description: "Name of the service deployed "
-      
-  
+      outboundLinkName:
+        type: "array"
+        items:
+          type: "string"
+        example: "[reporting,reportingback]"
+        description: "Name of the external service deployed. Used to make link."    
+  ServiceStatus:
+      allOf:
+      - $ref: '#/definitions/Service' # Cat has all properties of a Pet
+      type: "object"
+      required:
+      - "name"
+      properties:
+        id:
+          type: "integer"
+          format: "int64"
+        name:
+          type: "string"
+          example: "ffdc/reporting"
+          description: "The name of the service (required)"
+        status:
+          type: "string"
+          example: "Started"
+        errors:
+          type: "array"
+          items:
+            type: "string"
+        urls:
+          type: "array"
+          items:
+            $ref: '#/definitions/NamedLink' 
+        
+        
+  NamedLink:    
+      type: "object"
+      required:
+      - "name"
+      properties:
+        name:
+          type: "string"
+          example: "reporting"
+          description: "The name of the service."
+        url:
+          type: "string"
+          example: "http://reporting"
+          description: "Url of the service."
 
+  ServiceName:    
+      type: "object"
+      required:
+      - "name"
+      properties:
+        name:
+          type: "string"
+          example: "reporting"
+          description: "The name of the service."
+        version:
+          type: "string"
+          description: "Version of the service."
+      
         
 

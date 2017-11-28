@@ -3,51 +3,40 @@ package main
 import (
 	"flag"
 	"fmt"
+	"log"
+	"net/http"
 
-	"github.com/derekparker/delve/pkg/config"
+	comm "github.com/enablecloud/kulbe/common"
+	serv "github.com/enablecloud/kulbe/go-server-server/go"
 	kubeappoperator "github.com/enablecloud/kulbe/operators/application"
-	"k8s.io/client-go/rest"
-	"k8s.io/client-go/tools/clientcmd"
-	env "k8s.io/helm/pkg/helm/environment"
-	"k8s.io/helm/pkg/helm/helmpath"
 	"k8s.io/kubernetes/pkg/api"
 )
 
 func main() {
 
-	conf := &config.Config{}
 	var eventHandler kubeappoperator.Handler
 
-	helmhome := flag.String("helm-home", env.DefaultHelmHome, "location of your Helm config. Overrides $HELM_HOME.")
 	kubeconfig := flag.String("kube-config", "", "Path to a kube config. Only required if out-of-cluster.")
 	kubeContext := flag.String("kube-context", "", "name of the kubeconfig context to use.")
-	debug := flag.Bool("debug-helm", false, "debug mode.")
 	namespace := flag.String("namespace", api.NamespaceAll, "Namespace managed by the controller (All by default).")
-	tillernamespace := flag.String("tiller-namespace", "kube-system", "Tiller Namespace for helm deployment.")
-	tilleraddress := flag.String("tiller-host", "tiller-deploy:44134", "Tiller Address for helm deployment.")
-	tillertunnel := flag.Bool("tiller-tunnel", false, "Tiller tunnel active ?.(Default: false)")
+
 	flag.Parse() // Create the client config. Use kubeconfig if given, otherwise assume in-cluster.
-	config, err := buildConfig(*kubeconfig)
+	config, err := comm.BuildConfig(*kubeconfig)
 	if err != nil {
 		panic(err)
 	}
 	eventHandler = new(kubeappoperator.Default)
-	//var homeLad = new(helmpath.Home)
-	//homeLad = (helmpath.Home)(*helmhome)
-	//homeLad = *helmhome
 	var clientCluster = kubeappoperator.GetClient()
 	if clientCluster == nil {
 		clientCluster = kubeappoperator.GetClientOutOfCluster()
 	}
-	eventHandler.Init(conf, config, clientCluster, *tillernamespace, *tilleraddress, *tillertunnel, (helmpath.Home)(*helmhome), *debug, *kubeContext, *kubeconfig)
+	eventHandler.Init(config, clientCluster, *kubeContext, *kubeconfig)
 	fmt.Println("Start with namespace : '" + *namespace + "' and config: '" + *kubeconfig + "'.")
-	kubeappoperator.Start(conf, *namespace, config, eventHandler)
+	log.Printf("Server started")
 
-}
+	router := serv.NewRouter()
 
-func buildConfig(kubeconfig string) (*rest.Config, error) {
-	if kubeconfig != "" {
-		return clientcmd.BuildConfigFromFlags("", kubeconfig)
-	}
-	return rest.InClusterConfig()
+	go log.Fatal(http.ListenAndServe(":8080", router))
+	kubeappoperator.Start(*namespace, config, eventHandler)
+
 }

@@ -7,7 +7,6 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/derekparker/delve/pkg/config"
 	crv1 "github.com/enablecloud/kulbe/apis/cr/application/v1"
 	"k8s.io/apimachinery/pkg/fields"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -67,7 +66,7 @@ func GetClientOutOfCluster() kubernetes.Interface {
 	return clientset
 }
 
-func Start(conf *config.Config, namespace string, cfg *rest.Config, eventHandler Handler) {
+func Start(namespace string, cfg *rest.Config, eventHandler Handler) {
 	var kubeClient = GetClient()
 	if kubeClient == nil {
 		kubeClient = GetClientOutOfCluster()

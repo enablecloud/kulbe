@@ -17,7 +17,7 @@ limitations under the License.
 package versioned
 
 import (
-	crv1 "github.com/enablecloud/kulbe/client/application/clientset/versioned/typed/cr/v1"
+	kulbev1 "github.com/enablecloud/kulbe/client/application/clientset/versioned/typed/kulbe/v1"
 	glog "github.com/golang/glog"
 	discovery "k8s.io/client-go/discovery"
 	rest "k8s.io/client-go/rest"
@@ -26,27 +26,27 @@ import (
 
 type Interface interface {
 	Discovery() discovery.DiscoveryInterface
-	CrV1() crv1.CrV1Interface
+	KulbeV1() kulbev1.KulbeV1Interface
 	// Deprecated: please explicitly pick a version if possible.
-	Cr() crv1.CrV1Interface
+	Kulbe() kulbev1.KulbeV1Interface
 }
 
 // Clientset contains the clients for groups. Each group has exactly one
 // version included in a Clientset.
 type Clientset struct {
 	*discovery.DiscoveryClient
-	crV1 *crv1.CrV1Client
+	kulbeV1 *kulbev1.KulbeV1Client
 }
 
-// CrV1 retrieves the CrV1Client
-func (c *Clientset) CrV1() crv1.CrV1Interface {
-	return c.crV1
+// KulbeV1 retrieves the KulbeV1Client
+func (c *Clientset) KulbeV1() kulbev1.KulbeV1Interface {
+	return c.kulbeV1
 }
 
-// Deprecated: Cr retrieves the default version of CrClient.
+// Deprecated: Kulbe retrieves the default version of KulbeClient.
 // Please explicitly pick a version.
-func (c *Clientset) Cr() crv1.CrV1Interface {
-	return c.crV1
+func (c *Clientset) Kulbe() kulbev1.KulbeV1Interface {
+	return c.kulbeV1
 }
 
 // Discovery retrieves the DiscoveryClient
@@ -65,7 +65,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 	}
 	var cs Clientset
 	var err error
-	cs.crV1, err = crv1.NewForConfig(&configShallowCopy)
+	cs.kulbeV1, err = kulbev1.NewForConfig(&configShallowCopy)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func NewForConfig(c *rest.Config) (*Clientset, error) {
 // panics if there is an error in the config.
 func NewForConfigOrDie(c *rest.Config) *Clientset {
 	var cs Clientset
-	cs.crV1 = crv1.NewForConfigOrDie(c)
+	cs.kulbeV1 = kulbev1.NewForConfigOrDie(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClientForConfigOrDie(c)
 	return &cs
@@ -91,7 +91,7 @@ func NewForConfigOrDie(c *rest.Config) *Clientset {
 // New creates a new Clientset for the given RESTClient.
 func New(c rest.Interface) *Clientset {
 	var cs Clientset
-	cs.crV1 = crv1.New(c)
+	cs.kulbeV1 = kulbev1.New(c)
 
 	cs.DiscoveryClient = discovery.NewDiscoveryClient(c)
 	return &cs

@@ -2,22 +2,11 @@ package helm
 
 import (
 	"bytes"
-	"errors"
-	"fmt"
-	"os"
-	"path/filepath"
-	"strings"
 
 	"log"
 	"os/exec"
 
 	common "github.com/enablecloud/kulbe/common"
-	"k8s.io/helm/pkg/downloader"
-	"k8s.io/helm/pkg/getter"
-	"k8s.io/helm/pkg/helm"
-	"k8s.io/helm/pkg/helm/environment"
-	"k8s.io/helm/pkg/helm/portforwarder"
-	repo "k8s.io/helm/pkg/repo"
 )
 
 var (
@@ -56,6 +45,7 @@ func DeleteRelease(releasename string, config *common.Default) {
 
 }
 
+/*
 func NewHelmImplementer(config *common.Default) *helm.Client {
 	tunnel, err := portforwarder.New(config.TillerNamespace, config.Clientkub, config.RestConfig)
 	if err != nil {
@@ -153,3 +143,4 @@ func locateChartPath(repoURL, name, version string, verify bool, keyring,
 
 	return filename, fmt.Errorf("file %q not found", name)
 }
+*/

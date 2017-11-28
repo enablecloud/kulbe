@@ -1,18 +1,24 @@
 package: github.com/enablecloud/kulbe
 import:
-- package: k8s.io/helm
-  version: v2.7.2
+- package: k8s.io/code-generator
+  version: kubernetes-1.8.2
+- package: github.com/spf13/pflag
+  version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
+  #version: 9ff6c6923cfffbcd502984b8e0c80539a94968b7
+- package: github.com/gorilla/mux
+#- package: k8s.io/helm
+  #version: v2.7.2
 - package: k8s.io/client-go
-  version: kubernetes-1.8.0
+  version: kubernetes-1.8.2
 - package: k8s.io/api
-  version: kubernetes-1.8.0
+  version: kubernetes-1.8.2
 - package: k8s.io/apiserver
-  version: kubernetes-1.8.0
+  version: kubernetes-1.8.2
 - package: k8s.io/apimachinery
-  version: kubernetes-1.8.0
+  version: kubernetes-1.8.2
 - package: k8s.io/apiextensions-apiserver
-  version: kubernetes-1.8.0
+  version: kubernetes-1.8.2
 - package: k8s.io/kubernetes
-  version: v1.8.0
+  version: v1.8.2
 - package: k8s.io/kube-openapi 
-  version: d52097a 
+  #version: d52097a 

@@ -5,7 +5,6 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/derekparker/delve/pkg/config"
 	crv1 "github.com/enablecloud/kulbe/apis/cr/application/v1"
 	"github.com/enablecloud/kulbe/common"
 	hlm "github.com/enablecloud/kulbe/provider/helm"
@@ -13,7 +12,6 @@ import (
 
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
-	"k8s.io/helm/pkg/helm/helmpath"
 )
 
 type EventType string
@@ -31,7 +29,7 @@ type EventQueued struct {
 }
 
 type Handler interface {
-	Init(c *config.Config, rest *rest.Config, kube kubernetes.Interface, tillernamespace string, tillerAddress string, tillertunnel bool, home helmpath.Home, debugHelm bool, kubeContext string, kubeConfig string) error
+	Init(rest *rest.Config, kube kubernetes.Interface, kubeContext string, kubeConfig string) error
 	ObjectCreated(obj interface{})
 	ObjectDeleted(obj interface{})
 	ObjectUpdated(oldObj, newObj interface{})
@@ -40,29 +38,18 @@ type Handler interface {
 // Default handler implements Handler interface,
 // print each event with JSON format
 type Default struct {
-	config          *config.Config
-	restConfig      *rest.Config
-	clientkub       kubernetes.Interface
-	tillerAddress   string
-	tillerNamespace string
-	tillerTunnel    bool
-	home            helmpath.Home
-	debugHelm       bool
-	kubeContext     string
-	kubeConfig      string
+	restConfig  *rest.Config
+	clientkub   kubernetes.Interface
+	kubeContext string
+	kubeConfig  string
 }
 
 // Init initializes handler configuration
 // Do nothing for default handler
-func (d *Default) Init(conf *config.Config, rest *rest.Config, clientb kubernetes.Interface, tillernamespace string, tillerAddress string, tillertunnel bool, home helmpath.Home, debugHelm bool, kubeContext string, kubeConfig string) error {
-	d.config = conf
+func (d *Default) Init(rest *rest.Config, clientb kubernetes.Interface, kubeContext string, kubeConfig string) error {
 	d.restConfig = rest
 	d.clientkub = clientb
-	d.tillerAddress = tillerAddress
-	d.tillerNamespace = tillernamespace
-	d.tillerTunnel = tillertunnel
-	d.home = home
-	d.debugHelm = debugHelm
+
 	d.kubeContext = kubeContext
 	d.kubeConfig = d.kubeConfig
 	return nil
@@ -92,7 +79,7 @@ func (d *Default) ObjectDeleted(obj interface{}) {
 			}
 			compName = newNamespape + "-" + compName
 			//helmVersion := v.Spec.Version
-			newConf := common.Default{TillerAddress: d.tillerAddress, TillerNamespace: d.tillerNamespace, TillerTunnel: d.tillerTunnel, Config: d.config, RestConfig: d.restConfig, Clientkub: d.clientkub, Home: d.home, DebugHelm: d.debugHelm, KubeContext: d.kubeContext, KubeConfig: d.kubeConfig}
+			newConf := common.Default{RestConfig: d.restConfig, Clientkub: d.clientkub, KubeContext: d.kubeContext, KubeConfig: d.kubeConfig}
 
 			hlm.DeleteRelease(compName, &newConf)
 
@@ -126,7 +113,7 @@ func InstallAll(d *Default, obj interface{}) {
 			fmt.Println("Processing Create Component of ", compName)
 			compName = newNamespape + "-" + compName
 			helmVersion := v.Spec.Version
-			newConf := common.Default{TillerAddress: d.tillerAddress, TillerNamespace: d.tillerNamespace, TillerTunnel: d.tillerTunnel, Config: d.config, RestConfig: d.restConfig, Clientkub: d.clientkub, Home: d.home, DebugHelm: d.debugHelm, KubeContext: d.kubeContext, KubeConfig: d.kubeConfig}
+			newConf := common.Default{RestConfig: d.restConfig, Clientkub: d.clientkub, KubeContext: d.kubeContext, KubeConfig: d.kubeConfig}
 			hlm.InstallRelease(helmName, helmVersion, newNamespape, compName, &newConf)
 
 		}

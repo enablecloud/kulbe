@@ -18,8 +18,8 @@ package fake
 
 import (
 	clientset "github.com/enablecloud/kulbe/client/component/clientset/versioned"
-	crv1 "github.com/enablecloud/kulbe/client/component/clientset/versioned/typed/cr/v1"
-	fakecrv1 "github.com/enablecloud/kulbe/client/component/clientset/versioned/typed/cr/v1/fake"
+	kulbev1 "github.com/enablecloud/kulbe/client/component/clientset/versioned/typed/kulbe/v1"
+	fakekulbev1 "github.com/enablecloud/kulbe/client/component/clientset/versioned/typed/kulbe/v1/fake"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/watch"
 	"k8s.io/client-go/discovery"
@@ -60,12 +60,12 @@ func (c *Clientset) Discovery() discovery.DiscoveryInterface {
 
 var _ clientset.Interface = &Clientset{}
 
-// CrV1 retrieves the CrV1Client
-func (c *Clientset) CrV1() crv1.CrV1Interface {
-	return &fakecrv1.FakeCrV1{Fake: &c.Fake}
+// KulbeV1 retrieves the KulbeV1Client
+func (c *Clientset) KulbeV1() kulbev1.KulbeV1Interface {
+	return &fakekulbev1.FakeKulbeV1{Fake: &c.Fake}
 }
 
-// Cr retrieves the CrV1Client
-func (c *Clientset) Cr() crv1.CrV1Interface {
-	return &fakecrv1.FakeCrV1{Fake: &c.Fake}
+// Kulbe retrieves the KulbeV1Client
+func (c *Clientset) Kulbe() kulbev1.KulbeV1Interface {
+	return &fakekulbev1.FakeKulbeV1{Fake: &c.Fake}
 }
